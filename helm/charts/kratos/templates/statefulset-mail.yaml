@@ -8,6 +8,10 @@
 {{- $extraContainers := ternary .Values.statefulSet.extraContainers .Values.deployment.extraContainers (not (empty .Values.statefulSet.extraContainers )) -}}
 {{- $extraInitContainers := ternary .Values.statefulSet.extraInitContainers .Values.deployment.extraInitContainers (not (empty .Values.statefulSet.extraInitContainers )) -}}
 {{- $extraVolumes := ternary .Values.statefulSet.extraVolumes .Values.deployment.extraVolumes (not (empty .Values.statefulSet.extraVolumes )) -}}
+{{- $statefulSetPodMetadata := default dict .Values.statefulSet.podMetadata -}}
+{{- $deploymentPodMetadata := default dict .Values.deployment.podMetadata -}}
+{{- $podAnnotations := ternary (default dict $statefulSetPodMetadata.annotations) (default dict $deploymentPodMetadata.annotations) (not (empty $statefulSetPodMetadata.annotations )) -}}
+{{- $podLabels := ternary (default dict $statefulSetPodMetadata.labels) (default dict $deploymentPodMetadata.labels) (not (empty $statefulSetPodMetadata.labels )) -}}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -43,9 +47,15 @@ spec:
         {{- with $labels }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
+        {{- with $podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         {{- include "kratos.annotations.checksum" . | indent 8 -}}
         {{- with $annotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with $podAnnotations }}
           {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
